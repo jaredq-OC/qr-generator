@@ -7,3 +7,12 @@ Underlying error (domain=FBSOpenApplicationServiceErrorDomain, code=4):
 
 STDERR:
 
+STDOUT:
+An error was encountered processing the command (domain=FBSOpenApplicationServiceErrorDomain, code=4):
+Simulator device failed to launch com.kirt.qrcodegenerator.
+Underlying error (domain=FBSOpenApplicationServiceErrorDomain, code=4):
+	The request to open "com.kirt.qrcodegenerator" failed.
+
+
+STDERR:
+

@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// Main single-screen QR code generator view
+/// Designed for fast first paint: UI renders immediately, history loads in background
 struct GeneratorView: View {
     @StateObject private var viewModel = GeneratorViewModel()
     
@@ -32,10 +33,8 @@ struct GeneratorView: View {
                             .foregroundStyle(.red)
                     }
                     
-                    // History
-                    if !viewModel.historyEntries.isEmpty {
-                        historySection
-                    }
+                    // History — shows immediately with placeholders, thumbnails load async
+                    historySection
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
@@ -67,14 +66,12 @@ struct GeneratorView: View {
             )
             .presentationDetents([.medium])
         }
-        .onAppear {
-            viewModel.loadHistory()
-            if let stored = UserDefaults.standard.string(forKey: "appearanceMode"),
-               let mode = AppearanceMode(rawValue: stored) {
-                viewModel.appearanceMode = mode
-            }
-        }
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.generatedImage != nil)
+        .task {
+            // Load history IN BACKGROUND after first paint
+            // This keeps launch instant — UI renders, history populates async
+            viewModel.loadHistory()
+        }
     }
     
     // MARK: - Subviews

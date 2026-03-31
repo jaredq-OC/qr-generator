@@ -1,0 +1,35 @@
+Handoff Validation — 2026-03-31 20:56:31
+Repo URL: https://github.com/jaredq-OC/qr-generator
+
+[git clone]
+
+Cloning into 'qr-generator'...
+
+Repo root: /var/folders/zs/j78_wjy144l28mj_gylhq49c0000gp/T/handoff-validate-65d3tm8r/qr-generator
+Project file: QRCodeGenerator.xcodeproj
+
+[xcodebuild -list]
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -list -project QRCodeGenerator.xcodeproj
+
+Information about project "QRCodeGenerator":
+    Targets:
+        QRCodeGenerator
+
+    Build Configurations:
+        Debug
+        Release
+
+    If no build configuration is specified and -scheme is not passed then "Debug" is used.
+
+    Schemes:
+        QRCodeGenerator
+
+Validated local run commands:
+mkdir -p ~/Documents/openclaw/projects
+cd ~/Documents/openclaw/projects
+git clone https://github.com/jaredq-OC/qr-generator
+cd qr-generator
+open QRCodeGenerator.xcodeproj
+
+PASS: fresh-clone handoff validation passed
