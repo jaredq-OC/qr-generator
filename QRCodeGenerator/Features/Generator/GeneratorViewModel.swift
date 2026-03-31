@@ -74,6 +74,8 @@ final class GeneratorViewModel: ObservableObject {
         generatedImage = image
         
         // Save to history with thumbnail
+        let type = selectedType
+        let display = displayText
         let thumbnailFilename: String?
         if let thumbnail = QRCodeService.generateThumbnail(from: input) {
             thumbnailFilename = HistoryService.saveThumbnail(image: thumbnail, id: UUID())
@@ -82,14 +84,14 @@ final class GeneratorViewModel: ObservableObject {
         }
         
         let entry = QRHistoryEntry(
-            type: selectedType,
+            type: type,
             content: input,
-            displayText: displayText,
+            displayText: display,
             thumbnailFileName: thumbnailFilename
         )
         
         HistoryService.save(entry: entry)
-        historyEntries = HistoryService.loadEntries()
+        loadHistory()
     }
     
     func copyToClipboard() {

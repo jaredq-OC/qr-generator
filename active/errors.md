@@ -54,3 +54,36 @@ Evidence: Log lines from Kirt's testing session
 ### Action Required
 Dev continues autonomously — fixing layout/functional issues before re-running smoke test.
 Layout issues MUST surface screenshot to Kirt if not resolved after 2 attempts.
+
+## [2026-03-31 21:33] Kirt Rejection — REV-2 (Startup still glitchy)
+Error: 23-second gesture gate blocking — system gesture recognizer blocked for 23.1 seconds
+Layer: L4-UI / L1-MainThread
+Root Cause (in progress): 
+  - 10x HistoryThumbnail each fire .task {} immediately on render
+  - 10 concurrent async thumbnail loads competing for main thread during layout
+  - SwiftUI view body recomputation during first render may trigger excess layout passes
+  - .task {} in ForEach fires synchronously as part of view evaluation on iOS 16
+Impact: 23-second main thread blocking during early startup; gesture system times out
+Evidence: [_UISystemGestureGateGestureRecognizer: ...] blocking for 23.101880 seconds
+  UIScrollViewPanGestureRecognizer: failed(touchesEnded)
+  UIScrollViewDelayedTouchesBeganGestureRecognizer: failed(delayedTouchesDenied)
+Resolution in progress:
+  - Stagger thumbnail loading with Task.sleep between each load
+  - Use LazyHStack for history (only renders visible items)
+  - Defer entire history load by 1 second after view appears
+  - Reduce concurrent load burst
+
+## [2026-03-31 21:40] TASK-06 / Smoke Test Gate — FAILURES
+
+### Failed Checks
+- **LAUNCH**: FAIL
+- **UITESTS**: FAIL
+
+### Screenshots Captured
+- projects/qr-generator/active/screenshots/smoke/20260331-214017-01-launch-FAIL.png
+- projects/qr-generator/active/screenshots/smoke/20260331-214020-02-home-screen-PASS.png
+- projects/qr-generator/active/screenshots/smoke/20260331-214029-99-final-FAIL.png
+
+### Action Required
+Dev continues autonomously — fixing layout/functional issues before re-running smoke test.
+Layout issues MUST surface screenshot to Kirt if not resolved after 2 attempts.

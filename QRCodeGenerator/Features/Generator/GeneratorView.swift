@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Main single-screen QR code generator view
-/// Designed for fast first paint: UI renders immediately, history loads in background
+/// Designed for instant first paint: UI renders immediately, history loads in background
 struct GeneratorView: View {
     @StateObject private var viewModel = GeneratorViewModel()
     
@@ -33,7 +33,7 @@ struct GeneratorView: View {
                             .foregroundStyle(.red)
                     }
                     
-                    // History — shows immediately with placeholders, thumbnails load async
+                    // History — LazyHStack renders only visible items; thumbnails load async
                     historySection
                 }
                 .padding(.horizontal, 20)
@@ -68,8 +68,9 @@ struct GeneratorView: View {
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.generatedImage != nil)
         .task {
-            // Load history IN BACKGROUND after first paint
-            // This keeps launch instant — UI renders, history populates async
+            // Wait 1 full second before loading history metadata
+            // This ensures the first interactive frame renders with zero blocking
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             viewModel.loadHistory()
         }
     }
@@ -119,8 +120,10 @@ struct GeneratorView: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
             
+            // LazyHStack: only renders items currently visible on screen
+            // Each HistoryThumbnail loads its own thumbnail via task(id:) — staggered
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                LazyHStack(spacing: 12) {
                     ForEach(viewModel.historyEntries.reversed()) { entry in
                         HistoryThumbnail(entry: entry) {
                             viewModel.regenerateFromHistory(entry)

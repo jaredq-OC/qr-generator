@@ -1,17 +1,25 @@
 import SwiftUI
 
-/// History entry thumbnail with async image loading for fast launch
+/// History entry thumbnail with per-item staggered async loading
+/// Each thumbnail waits a unique delay (derived from its UUID hash) before loading
+/// This prevents 10 concurrent loads from all starting simultaneously
 struct HistoryThumbnail: View {
     let entry: QRHistoryEntry
     let onTap: () -> Void
     
     @State private var thumbnailImage: UIImage?
-    @State private var isLoading = true
+    
+    /// Computed unique stagger delay from UUID hash (50-500ms range)
+    private var staggerDelay: UInt64 {
+        let hash = abs(entry.id.uuidString.hashValue)
+        let delayMs = 50 + (hash % 450) // 50-500ms unique delay
+        return UInt64(delayMs) * 1_000_000 // to nanoseconds
+    }
     
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 6) {
-                // Thumbnail — shows placeholder while loading
+                // Thumbnail
                 Group {
                     if let image = thumbnailImage {
                         Image(uiImage: image)
@@ -27,13 +35,8 @@ struct HistoryThumbnail: View {
                             .fill(Color(.tertiarySystemBackground))
                             .frame(width: 60, height: 60)
                             .overlay {
-                                if isLoading {
-                                    ProgressView()
-                                        .scaleEffect(0.7)
-                                } else {
-                                    Image(systemName: entry.type.icon)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Image(systemName: entry.type.icon)
+                                    .foregroundStyle(.secondary)
                             }
                     }
                 }
@@ -47,25 +50,18 @@ struct HistoryThumbnail: View {
         }
         .buttonStyle(.plain)
         .task(id: entry.id) {
-            await loadThumbnail()
-        }
-    }
-    
-    private func loadThumbnail() async {
-        guard let filename = entry.thumbnailFileName else {
-            isLoading = false
-            return
-        }
-        
-        // Load on background thread to avoid blocking UI
-        let image = await Task.detached(priority: .userInitiated) {
-            HistoryService.loadThumbnail(filename: filename)
-        }.value
-        
-        // Only update if still showing the same entry
-        if !Task.isCancelled {
+            // Wait for unique stagger delay — prevents concurrent load burst
+            try? await Task.sleep(nanoseconds: staggerDelay)
+            guard !Task.isCancelled else { return }
+            
+            // Load on background thread — thumbnail I/O is off main thread
+            let image = await Task.detached(priority: .utility) {
+                guard let filename = entry.thumbnailFileName else { return nil as UIImage? }
+                return HistoryService.loadThumbnail(filename: filename)
+            }.value
+            
+            guard !Task.isCancelled else { return }
             thumbnailImage = image
-            isLoading = false
         }
     }
 }

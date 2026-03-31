@@ -1,44 +1,29 @@
 # Plan Execution: QR Code Generator App
-Project: qr-generator | Updated: 2026-03-31 22:20 AEST
+Project: qr-generator | Updated: 2026-03-31 22:36 AEST
 
-## Status: REV-1 IN PROGRESS (Kirt rejection fix)
+## Status: REV-2 IN PROGRESS
 
-## Rejection Issue
-- Startup unresponsive, feels blocked
-- First render/interaction too slow
-- Similar to breathing-pacer startup issue
-
-## Root Cause Analysis
-1. `HistoryThumbnail.loadThumbnail()` called synchronously in view body — 10 file reads on main thread
-2. `loadHistory()` called on `onAppear` — blocks on UserDefaults + thumbnail I/O
-3. No async thumbnail loading — all 10 thumbnails load at once during render
-4. "Result accumulator timeout: 3.000000" confirms main thread blocked
+## Rejection Analysis
+**Evidence:** Gesture gate blocked for 23.1 seconds during early startup
+**Symptom:** Main thread starvation — system gesture recognizer couldn't acquire input
+**Root Cause (confirmed):** 
+- REV-1's `.task {}` on each HistoryThumbnail fires synchronously during view evaluation
+- 10 concurrent async tasks all starting at once during first render
+- Each task decodes a PNG on the main thread when complete
+- This competes with SwiftUI's initial layout pass, causing extended main thread blocking
+**Secondary factors:** HStack renders all 10 thumbnails immediately (no lazy loading)
 
 ## Fix Plan
-1. Create `AsyncThumbnailView` — loads images asynchronously via Task { }
-2. Show placeholder during load — immediate first paint
-3. Defer `loadHistory()` to task { } after view appears
-4. Remove blocking thumbnail reads from view body
-5. History loads in background, thumbnails load individually as they appear
+1. Replace HStack with LazyHStack — only renders visible items
+2. Stagger thumbnail loading: sequential with 100ms delay between each
+3. Defer entire history load by 1 second — let first frame render undisturbed
+4. Load thumbnails one at a time via sequential async loop
+5. No thumbnail loading until after first interactive frame is confirmed
 
 ## Cursor
-- Current Step ID: REV-1-FIX
+- Current Step ID: REV-2-FIX
 - Status: ABOUT TO EXECUTE
-- Last Action: Identified root cause — synchronous thumbnail loading in view body
-- Finding: HistoryThumbnail calls HistoryService.loadThumbnail() synchronously for all 10 entries on first render
-- Next Action: Rewrite HistoryThumbnail as async, defer history loading
+- Last Action: Identified root cause — 10 concurrent .task {} during first render
+- Finding: .task {} in ForEach fires immediately on iOS 16; PNG decode on main thread compounds
+- Next Action: Rewrite GeneratorView + HistoryThumbnail for staggered lazy loading
 - Blocker: none
-
-## Active Slice
-- [ ] Rewrite HistoryThumbnail as AsyncThumbnailView
-- [ ] Defer loadHistory() to background Task
-- [ ] Show placeholder/loading state until ready
-- [ ] Rebuild and verify
-- [ ] Smoke test with screenshot capture
-
-## KB Notes
-- [KB-NEW] @Observable requires iOS 17+; @ObservableObject used for iOS 16 compat
-- [KB-NEW] HistoryThumbnail synchronous file I/O on main thread blocks launch
-
-## Open Blockers
-- none
