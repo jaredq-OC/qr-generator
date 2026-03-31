@@ -87,3 +87,38 @@ Resolution in progress:
 ### Action Required
 Dev continues autonomously — fixing layout/functional issues before re-running smoke test.
 Layout issues MUST surface screenshot to Kirt if not resolved after 2 attempts.
+
+## [2026-03-31 22:14] Kirt Rejection — REV-3
+
+### Issue 1: UI Overlap Bug
+Error: Settings button overlaps WiFi button — layout constraint failure
+Layer: L4-UI / Layout
+Root Cause (suspected): Settings button VStack overlay with Spacer() overlaps input section on smaller screens or when keyboard appears
+Resolution: Fix GeneratorView layout — move settings button out of overlay ZStack into safe toolbar, or use .safeAreaInset()
+
+### Issue 2: Auto Layout Keyboard Constraint Error
+Error: TUIKeyplane.height == 224 vs _UITemporaryLayoutHeight == 258 — constraint conflict at runtime
+Layer: L4-UI / Keyboard
+Root Cause: System keyboard view conflicting with app layout when text field becomes first responder
+Resolution: Wrap text fields in safe-area-respecting container; avoid pinning views that conflict with keyboard layout
+
+### Issue 3: fopen failed for data file (errno 2)
+Error: Something in the app/simulator is trying to open a missing data file
+Layer: L1-Startup / I/O
+Root Cause: Investigating — likely a system file path not created, or UserDefaults corruption
+Resolution: Investigate which path; add graceful fallback
+
+## [2026-03-31 22:17] TASK-06 / Smoke Test Gate — FAILURES
+
+### Failed Checks
+- **LAUNCH**: FAIL
+- **UITESTS**: FAIL
+
+### Screenshots Captured
+- projects/qr-generator/active/screenshots/smoke/20260331-221714-01-launch-FAIL.png
+- projects/qr-generator/active/screenshots/smoke/20260331-221717-02-home-screen-PASS.png
+- projects/qr-generator/active/screenshots/smoke/20260331-221726-99-final-FAIL.png
+
+### Action Required
+Dev continues autonomously — fixing layout/functional issues before re-running smoke test.
+Layout issues MUST surface screenshot to Kirt if not resolved after 2 attempts.

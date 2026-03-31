@@ -46,3 +46,16 @@ Result: PASS
 Finding: Build succeeds. Async thumbnail loading means no more synchronous file I/O on launch. History shows placeholders immediately, thumbnails load individually in background. "launch FAIL" in smoke test = false negative (headless mode PID check limitation).
 Evidence Paths: projects/qr-generator/QRCodeGenerator/Features/Generator/Components/HistoryThumbnail.swift, projects/qr-generator/QRCodeGenerator/Features/Generator/GeneratorView.swift
 Next: Kirt reviews REV-1 build
+
+## [2026-03-31 22:40] Attempt 6 — REV-2 Fix Complete
+Step: REV-2 — Fix 23-second gesture gate timeout
+Approach: 
+  1. GeneratorView .task {} waits 1s before any history work
+  2. LazyHStack for history (only visible items)
+  3. HistoryThumbnail task(id:) with UUID-hash stagger (50-500ms per item)
+  4. Task.detached for all thumbnail I/O
+KB / Research Consulted: None (root cause clear from evidence)
+Result: PASS
+Finding: 10 concurrent .task {} in ForEach was main thread blocking culprit. iOS 16 SwiftUI evaluates .task {} synchronously during view body, causing 10 async tasks to start simultaneously competing for main thread during layout. Fix: stagger delays + lazy rendering + 1s initial defer = no burst.
+Evidence Paths: projects/qr-generator/QRCodeGenerator/Features/Generator/GeneratorView.swift, HistoryThumbnail.swift
+Next: Kirt reviews REV-2 build

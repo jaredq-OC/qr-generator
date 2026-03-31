@@ -6,53 +6,50 @@ struct GeneratorView: View {
     @StateObject private var viewModel = GeneratorViewModel()
     
     var body: some View {
-        ZStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Segmented type picker
-                    typePicker
-                    
-                    // Conditional input
-                    inputSection
-                    
-                    // Generate button
-                    generateButton
-                    
-                    // QR Code card
-                    if let image = viewModel.generatedImage {
-                        QRCodeCard(image: image, showCopied: viewModel.showCopiedConfirmation, onCopy: {
-                            viewModel.copyToClipboard()
-                        })
-                        .transition(.scale(scale: 0.8).combined(with: .opacity))
-                    }
-                    
-                    // Error message
-                    if let error = viewModel.errorMessage {
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
-                    
-                    // History — LazyHStack renders only visible items; thumbnails load async
-                    historySection
+        ScrollView {
+            VStack(spacing: 24) {
+                // Segmented type picker
+                typePicker
+                
+                // Conditional input
+                inputSection
+                
+                // Generate button
+                generateButton
+                
+                // QR Code card
+                if let image = viewModel.generatedImage {
+                    QRCodeCard(image: image, showCopied: viewModel.showCopiedConfirmation, onCopy: {
+                        viewModel.copyToClipboard()
+                    })
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                
+                // Error message
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                
+                // History — LazyHStack renders only visible items; thumbnails load async
+                historySection
             }
-            
-            // Settings button overlay
-            VStack {
-                HStack {
-                    Spacer()
-                    Button {
-                        viewModel.showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+        .ignoresSafeArea(.keyboard) // Prevent keyboard from compressing layout and causing overlap
+        .safeAreaInset(edge: .top) { // Settings button properly in safe area — no overlap
+            HStack {
                 Spacer()
+                Button {
+                    viewModel.showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .padding(8) // Adequate touch target
+                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -120,8 +117,6 @@ struct GeneratorView: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
             
-            // LazyHStack: only renders items currently visible on screen
-            // Each HistoryThumbnail loads its own thumbnail via task(id:) — staggered
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
                     ForEach(viewModel.historyEntries.reversed()) { entry in

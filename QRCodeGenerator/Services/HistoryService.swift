@@ -9,6 +9,9 @@ enum HistoryService {
     
     /// Loads all history entries from UserDefaults
     static func loadEntries() -> [QRHistoryEntry] {
+        // Ensure thumbnails directory exists before any thumbnail access
+        ensureThumbnailsDirectory()
+        
         guard let data = UserDefaults.standard.data(forKey: userDefaultsKey) else {
             return []
         }
@@ -43,9 +46,18 @@ enum HistoryService {
     }
     
     /// Loads a thumbnail image for a history entry
+    /// Returns nil gracefully if file doesn't exist (handles deleted/orphaned thumbnails)
     static func loadThumbnail(filename: String) -> UIImage? {
+        guard !filename.isEmpty else { return nil }
         guard let url = thumbnailURL(filename: filename) else { return nil }
-        guard let data = try? Data(contentsOf: url) else { return nil }
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("HistoryService: Thumbnail file not found: \(url.path)")
+            return nil
+        }
+        guard let data = try? Data(contentsOf: url) else {
+            print("HistoryService: Failed to read thumbnail data: \(url.path)")
+            return nil
+        }
         return UIImage(data: data)
     }
     
@@ -62,28 +74,45 @@ enum HistoryService {
     
     private static func thumbnailURL(filename: String) -> URL? {
         guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("HistoryService: Could not locate Documents directory")
             return nil
         }
         return documentsURL.appendingPathComponent(thumbnailsDir).appendingPathComponent(filename)
     }
     
+    /// Creates thumbnails directory if it doesn't exist — called before any file operations
     private static func ensureThumbnailsDirectory() {
-        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("HistoryService: Could not locate Documents directory for thumbnail creation")
+            return
+        }
         let dirURL = documentsURL.appendingPathComponent(thumbnailsDir)
-        try? FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
+        guard !FileManager.default.fileExists(atPath: dirURL.path) else { return }
+        do {
+            try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true)
+            print("HistoryService: Created thumbnails directory at \(dirURL.path)")
+        } catch {
+            print("HistoryService: Failed to create thumbnails directory: \(error)")
+        }
     }
     
     /// Saves a thumbnail image and returns the filename
     @discardableResult
     static func saveThumbnail(image: UIImage, id: UUID) -> String? {
         ensureThumbnailsDirectory()
-        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil }
+        guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("HistoryService: Could not locate Documents directory for thumbnail save")
+            return nil
+        }
         let filename = "\(id.uuidString).png"
         let fileURL = documentsURL.appendingPathComponent(thumbnailsDir).appendingPathComponent(filename)
         
-        guard let data = image.pngData() else { return nil }
+        guard let data = image.pngData() else {
+            print("HistoryService: Failed to encode thumbnail to PNG")
+            return nil
+        }
         do {
-            try data.write(to: fileURL)
+            try data.write(to: fileURL, options: .atomic)
             return filename
         } catch {
             print("HistoryService: Failed to save thumbnail: \(error)")
