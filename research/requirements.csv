@@ -1,0 +1,20 @@
+id,type,statement,priority,classification
+RQ-01,functional,Generate QR codes for URLs,P0,core
+RQ-02,functional,Generate QR codes for plain text strings,P0,core
+RQ-03,functional,Generate QR codes for WiFi credentials (WIFI:T:WPA;S:<network>;P:<password>;;),P0,core
+RQ-04,functional,Copy generated QR code image to clipboard with one tap,P0,core
+RQ-05,functional,Share QR code via iOS share sheet,P0,core
+RQ-06,constraint,App operates fully offline — no data collected or transmitted,P0,constraint
+RQ-07,functional,Store last 10 generated QR codes locally on-device only,P1,additional
+RQ-08,constraint,History data is never synced to any external service,P0,constraint
+RQ-09,functional,Support dark mode and light mode,P1,additional
+RQ-10,functional,Support automatic mode switching based on system appearance,P1,additional
+RQ-11,functional,Allow manual toggle between dark and light mode,P1,additional
+RQ-12,non-goal,Widget support (optional, lower priority),P2,deferred
+RQ-13,constraint,App is an iOS app,P0,platform
+RQ-14,constraint,QR generation must work without network access,P0,constraint
+NFR-01,non-functional,QR codes must be scannable by any standard QR code reader,P0,quality
+NFR-02,non-functional,QR code generation must be instant (< 1 second),P0,performance
+NFR-03,constraint,No external API calls for QR generation,P0,constraint
+NFR-04,non-functional,History data persists across app launches,P1,persistence
+NFR-05,constraint,No analytics, tracking, or telemetry,P0,privacy

@@ -1,0 +1,12 @@
+# Compatibility Matrix — QR Code Generator App
+
+| Dependency | Version | Status | Notes |
+|-----------|---------|--------|-------|
+| Swift | 6.2.3 | ✅ green | Current |
+| iOS | 17.5 sim / iOS 16+ target | ✅ green | Native CoreImage works on iOS 13+; targeting 16+ |
+| XcodeGen | /usr/local/bin/xcodegen 2.45.3 | ✅ green | KB-flagged: use this, NOT ~/bin/xcodegen |
+| CoreImage CIFilter | Built-in | ✅ green | `CIFilter.qrCodeGenerator()` — no external dep |
+| SwiftUI | Built-in | ✅ green | Native, no package needed |
+| UIKit (share/copy) | Built-in | ✅ green | `UIPasteboard`, `UIActivityViewController` |
+| UserDefaults | Built-in | ✅ green | Sufficient for 10-entry history |
+| Xcode | 16+ | ✅ green | For iOS 16+ target |

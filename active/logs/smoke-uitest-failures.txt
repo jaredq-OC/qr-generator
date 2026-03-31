@@ -1,0 +1,5 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project projects/qr-generator/qr-generator.xcodeproj -scheme QrGeneratorUITests -configuration Debug -destination id=DD1443D2-B7FE-4A64-8ED6-FB4F4C5E0336 test
+
+2026-03-31 20:51:35.755 xcodebuild[78444:7016679] Writing error result bundle to /var/folders/zs/j78_wjy144l28mj_gylhq49c0000gp/T/ResultBundle_2026-31-03_20-51-0035.xcresult
+xcodebuild: error: 'projects/qr-generator/qr-generator.xcodeproj' does not exist.

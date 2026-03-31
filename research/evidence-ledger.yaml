@@ -1,0 +1,93 @@
+# Evidence Ledger — QR Code Generator App
+
+```yaml
+EV-01:
+  claim: "Apple's CIFilter provides qrCodeGenerator() for QR code generation"
+  source_type: official_doc
+  url: https://developer.apple.com/documentation/coreimage/cifilter-swift.class/qrcodegenerator()
+  retrieved_at: 2026-03-31
+  supports: [DEC-01]
+  contradicts: []
+  strength: strong
+
+EV-02:
+  claim: "CIFilter QR generation with correct scaling technique produces sharp QR codes"
+  source_type: tutorial
+  url: https://www.hackingwithswift.com/books/ios-swiftui/generating-and-scaling-up-a-qr-code
+  retrieved_at: 2026-03-31
+  supports: [DEC-01]
+  contradicts: []
+  strength: strong
+
+EV-03:
+  claim: "WiFi QR format: WIFI:T:<enc>;S:<ssid>;P:<password>;; with special char escaping"
+  source_type: official_guide
+  url: https://wifiqrcode.app/guides/qr-code-format-technical
+  retrieved_at: 2026-03-31
+  supports: [DEC-02]
+  contradicts: []
+  strength: strong
+
+EV-04:
+  claim: "Semicolons and backslashes in WiFi SSID/password must be escaped with backslash"
+  source_type: technical_blog
+  url: https://feeding.cloud.geek.nz/posts/encoding-wifi-access-point-passwords-qr-code/
+  retrieved_at: 2026-03-31
+  supports: [DEC-02]
+  contradicts: []
+  strength: strong
+
+EV-05:
+  claim: "Standard iOS pattern: UserDefaults for metadata + file system for binary thumbnails"
+  source_type: pattern
+  url: https://developer.apple.com/documentation/xcode/distributing-your-app
+  retrieved_at: 2026-03-31
+  supports: [DEC-04]
+  contradicts: []
+  strength: medium
+
+EV-06:
+  claim: "XcodeGen at /usr/local/bin/xcodegen is working 2.45.3; /Users/jared/bin/xcodegen is broken stub"
+  source_type: workspace_kb
+  url: skills/dev/knowledge/xcodegen-path-resolution.md
+  retrieved_at: 2026-03-31
+  supports: [DEC-05]
+  contradicts: []
+  strength: strong
+```
+
+## Design Decisions
+
+```yaml
+DEC-01:
+  decision: "Use CIFilter.qrCodeGenerator() from CoreImage for QR generation"
+  rationale: "Native Apple API, no external dependency, works fully offline, fast"
+  alternatives_considered: ["EFQRCode (third-party)", "QRCodeView library"]
+  evidence: [EV-01, EV-02]
+
+DEC-02:
+  decision: "WiFi QR payload uses MECARD-like format WIFI:T:<enc>;S:<ssid>;P:<password>;; with backslash escaping"
+  rationale: "ISO/IEC 18004:2006 standard format, universally supported by iOS Camera, Android, and dedicated scanners"
+  evidence: [EV-03, EV-04]
+
+DEC-03:
+  decision: "Single-screen layout with segmented picker for QR type selection"
+  rationale: "Single-purpose tool; minimal navigation; fast type switching without screen transitions"
+  alternatives_considered: ["Tab-based (rejected — more friction)"]
+  evidence: []
+
+DEC-04:
+  decision: "History stored as Codable struct in UserDefaults + PNG thumbnails in Documents/Thumbnails/"
+  rationale: "UserDefaults handles small structured data natively; file system for binary; no external DB needed"
+  evidence: [EV-05]
+
+DEC-05:
+  decision: "Always use /usr/local/bin/xcodegen for project generation"
+  rationale: "/Users/jared/bin/xcodegen is a broken 9-byte stub per KB"
+  evidence: [EV-06]
+
+DEC-06:
+  decision: "Target iOS 16+ as minimum deployment"
+  rationale: "Modern SwiftUI APIs (shareLink), broad adoption (>96%), no reason to target older"
+  evidence: []
+```
